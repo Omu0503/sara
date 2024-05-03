@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:navapp2/AudioModule/audio.dart';
+import 'package:navapp2/AudioModule/try.dart';
 import 'package:navapp2/Models/PlaceProviders.dart';
 import 'package:navapp2/screens/searchPage.dart';
 import 'package:provider/provider.dart';
@@ -48,7 +49,7 @@ class _MyAppState extends State<MyApp> {
             ChangeNotifierProvider(create: (context) => placesProvider)
           ],
           child: Builder(builder: (context) {
-            return STT()
+            return const STT()
             // Home(placesProvider: placesProvider)
             ;
           })),

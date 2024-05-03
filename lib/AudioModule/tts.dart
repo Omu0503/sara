@@ -5,7 +5,8 @@ import 'dart:typed_data';
 
 import 'package:http/http.dart' as http;
 import 'package:navapp2/consts.dart';
-import 'package:just_audio/just_audio.dart';
+// import 'package:just_audio/just_audio.dart';
+import 'package:audioplayers/audioplayers.dart';
 import 'package:path_provider/path_provider.dart';
 
 final player = AudioPlayer();
@@ -55,7 +56,7 @@ Future<Message> llmResponse(String text, List messageHistory) async {
   }
 }
 
-Future<void> textToSpeech(String text) async {
+Future<void> textToSpeech(String text, AudioPlayer player) async {
   final uri = Uri.parse('https://api.openai.com/v1/audio/speech');
 
   try {
@@ -92,8 +93,8 @@ Future<void> textToSpeech(String text) async {
         });
 
         try {
-          await player.setFilePath(filePath);
-          await player.play();
+          // await player.setFilePath(filePath);
+          await player.play(AssetSource(filePath));
         } catch (e) {
           print(
               '*********************************************************************audio buffering');
@@ -110,21 +111,21 @@ Future<void> textToSpeech(String text) async {
   }
 }
 
-class MyAudioClass extends StreamAudioSource {
-  Stream<List<int>> bytestream;
+// class MyAudioClass extends StreamAudioSource {
+//   Stream<List<int>> bytestream;
 
-  MyAudioClass(this.bytestream);
+//   MyAudioClass(this.bytestream);
 
-  @override
-  Future<StreamAudioResponse> request([int? start, int? end]) async {
-    start ??= 0;
-    end = null;
-    return StreamAudioResponse(
-      sourceLength: null,
-      contentLength: null,
-      offset: start,
-      stream: bytestream,
-      contentType: 'audio/ogg',
-    );
-  }
-}
+//   @override
+//   Future<StreamAudioResponse> request([int? start, int? end]) async {
+//     start ??= 0;
+//     end = null;
+//     return StreamAudioResponse(
+//       sourceLength: null,
+//       contentLength: null,
+//       offset: start,
+//       stream: bytestream,
+//       contentType: 'audio/ogg',
+//     );
+//   }
+// }
