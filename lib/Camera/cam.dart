@@ -56,7 +56,9 @@ class _CamWidgetState extends State<CamWidget> {
       body: permissionGranted
           ? Center(
               child: GestureDetector(
-                onTap: () {},
+                onTap: () {
+                  
+                },
                 child: Container(
                   height: 100,
                   width: 80,

@@ -49,8 +49,10 @@ class _MyAppState extends State<MyApp> {
             ChangeNotifierProvider(create: (context) => placesProvider)
           ],
           child: Builder(builder: (context) {
-            return const STT()
-            // Home(placesProvider: placesProvider)
+            return 
+            
+            // STT()
+            Home(placesProvider: placesProvider)
             ;
           })),
     );

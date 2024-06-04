@@ -12,12 +12,19 @@ import 'package:location/location.dart';
 import 'package:navapp2/Models/PlaceProviders.dart';
 import 'package:navapp2/Models/Places.dart';
 import 'package:navapp2/consts.dart';
+import 'package:navapp2/screens/loadingScreen.dart';
 import 'package:navapp2/screens/searchPage.dart';
+import 'package:navapp2/utlilities/APIcalls.dart';
+import 'package:navapp2/utlilities/GeolocationAlgo.dart';
+import 'package:navapp2/utlilities/activationProvider.dart';
 import 'package:provider/provider.dart';
 import 'package:rxdart/rxdart.dart';
 
+import '../AudioModule/audio.dart';
 import '../utlilities/themes.dart';
 
+
+List<Leg> legs = [];
 class Home extends StatefulWidget {
   Home({Key? key, required this.placesProvider}) : super(key: key);
 
@@ -45,6 +52,8 @@ class _HomeState extends State<Home> {
   Widget build(BuildContext mainContext) {
     Set<Polyline> polylineSet = {};
     ValueNotifier<List<LatLng>?> listOfPolyPts = ValueNotifier(null);
+    ValueNotifier<String> distance = ValueNotifier('');
+    ValueNotifier<String> duration = ValueNotifier('');
     BitmapDescriptor originIcon = BitmapDescriptor.defaultMarker;
     BitmapDescriptor destiantionIcon = BitmapDescriptor.defaultMarker;
 
@@ -54,47 +63,41 @@ class _HomeState extends State<Home> {
           .then((value) => destiantionIcon = value);
     }
 
-    void getPolyPoints(Places places) async {
+    void getPolyPoints(String polylinecode) async {
       PolylinePoints polylinePoints = PolylinePoints();
-      PolylineResult result = await polylinePoints.getRouteBetweenCoordinates(
-          apikey,
-          PointLatLng(places.currentLocCoords[0], places.currentLocCoords[1]),
-          PointLatLng(
-              places.destinationCoords[0], places.destinationCoords[1]));
+      final result =  polylinePoints.decodePolyline(polylinecode);
 
-      if (result.points.isEmpty) {
+      if (result.isEmpty) {
         listOfPolyPts.value = [];
         return;
       }
       listOfPolyPts.value = [];
-      result.points.forEach((point) =>
+      result.forEach((point) =>
           listOfPolyPts.value!.add(LatLng(point.latitude, point.longitude)));
       listOfPolyPts.notifyListeners();
     }
 
-    // void retrieveroutes(Places places) async {
-    //   routes = await places.getRoutes(
-    //       LatLng(places.currentLocCoords[0], places.currentLocCoords[1]),
-    //       LatLng(places.destinationCoords[0], places.destinationCoords[1]));
-    //   print(
-    //       '********************************************************************************8');
-    //   print(routes);
-    //   if (routes.isEmpty) {
-    //     places.searchingRoute = true;
-    //     retrieveroutes(places);
-    //   } else {
-    //     final routeSet = routes.toSet();
-    //     polylineSet = routeSet
-    //         .map((e) => Polyline(
-    //             polylineId: PolylineId(''),
-    //             points: e.encodedPolyline,
-    //             color: myThemes.green,
-    //             width: 4))
-    //         .toSet();
-    //     places.searchingRoute = false;
-    //     print(polylineSet.first);
-    //   }
-    // }
+    Future<Map<String, dynamic>> retrieveroutes(Places places) async {
+      
+      final routes = await APIcalls.fetchRoute(
+          LatLng(places.currentLocCoords[0], places.currentLocCoords[1]),
+          LatLng(places.destinationCoords[0], places.destinationCoords[1]));
+      print(
+          '********************************************************************************8');
+      print(routes);
+      final legsJson = routes['legs'];
+       List<Leg> legs = legsJson.map((e) => Leg.fromJson(e)).toList();
+      Timer.periodic(Duration(seconds: 15), (timer) { 
+        legs = findCurrentLeg(legs,   LatLng(places.currentLocCoords[0], places.currentLocCoords[1]));
+        
+      });
+      return {
+        'distance' : routes['distanceMeters'],
+        'duration': routes['duration'],
+        'polyline_code': routes['polyline']['encodedPolyline']
+      };
+      
+    }
 
     void animateCam(Places places) {
       mapController?.animateCamera(CameraUpdate.newCameraPosition(
@@ -113,17 +116,32 @@ class _HomeState extends State<Home> {
 
     return Scaffold(
         backgroundColor: Colors.black87,
-        body: Consumer<Places>(builder: (context, places, child) {
-          if (!places.destinationCoords.every((element) => element == 0)) {
-            animateCam(places);
+        
+        body: Consumer<Places>(
+          
+          builder: (context, places, child)  {
+          bool destinationNotGiven = places.destinationCoords.every((element) => element == 0);
+          if (!destinationNotGiven) {
+            listOfPolyPts.value = [];
+            final routes = retrieveroutes(places).then((value)  {
+              getPolyPoints(value['polyline_code']);
+              distance.value = value['distance'];
+              duration.value = value['duration'];
+              
+              });
+            showBothLocations(places);
+            
+
           }
+          final LatLng currentLoc = LatLng(places.currentLocCoords[0], places.currentLocCoords[1]);
           return ValueListenableBuilder<List<LatLng>?>(
               valueListenable: listOfPolyPts,
               builder: (context, polypts, snapshot) {
-                return Stack(
+                return polypts != null && polypts.isEmpty  ? LoadingScreen() :Stack(
                   children: [
                     Consumer<LocationProvider>(
                       builder: (context, loc, child) {
+                        if (places.currentLocCoords.every((element) => element==0)) places.currentLocCoords = [loc.locationData?.latitude ?? 0,loc.locationData?.longitude ?? 0];
                         return loc.locationData == null
                             ? const Center(
                                 child: CupertinoActivityIndicator(
@@ -139,7 +157,7 @@ class _HomeState extends State<Home> {
                                 initialCameraPosition: CameraPosition(
                                     target: LatLng(loc.locationData!.latitude!,
                                         loc.locationData!.longitude!),
-                                    zoom: 14),
+                                    zoom: 13),
                                 markers: {
                                   Marker(
                                     markerId:
@@ -159,12 +177,27 @@ class _HomeState extends State<Home> {
                                 },
                                 polylines: {
                                   Polyline(
+                                    color: myThemes.green,
+                                    width: 5,
                                       polylineId: PolylineId('route'),
-                                      points: listOfPolyPts.value ?? [])
+                                      points: polypts?? [])
                                 },
                               );
                       },
                     ),
+                     Positioned(
+                      right: 10,
+                      top: 120,
+                      child: ValueListenableBuilder<bool>(
+                        valueListenable: isSystemActivated,
+                        builder: (context, isActivated, child) {
+                          return  isActivated? const SizedBox(
+                            width: 100,
+                            height: 100,
+                            child:  STT( )) : Container();
+                        }
+                      )
+                      ),
                     Positioned(
                       bottom: 4,
                       left: 14,
@@ -178,19 +211,65 @@ class _HomeState extends State<Home> {
                         ),
                         padding: const EdgeInsets.only(top: 23),
                         width: MediaQuery.of(context).size.width,
-                        height: (places.currentLocCoords
-                                    .every((element) => element == 0) ||
+                        height: (
                                 places.destinationCoords.every(
                                   (element) => element == 0,
                                 ))
-                            ? 220
-                            : 280,
+                            ? 180
+                            : 220,
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.start,
                           children: [
                             const SizedBox(
                               height: 24,
                             ),
+                            !destinationNotGiven ? Column(
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              mainAxisAlignment: MainAxisAlignment.spaceAround,
+                              children: [
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                  children: [
+                                    ValueListenableBuilder(
+                                      valueListenable: distance,
+                                      builder: (context, d, child) {
+                                        return d.isEmpty? Container(
+                                          height: 24,
+                                          width: myThemes.returnWidth(context)*0.3,
+                                          decoration: BoxDecoration(
+                                            borderRadius: BorderRadius.circular(10),
+                                            color: const Color.fromARGB(255, 53, 53, 53),
+                                          ),
+                                          
+                                        ) : generalText('Distance: $d', color: myThemes.green, fontSize: 14,);
+                                      }
+                                    ),
+                                    ValueListenableBuilder(
+                                      valueListenable: duration,
+                                      builder: (context, d, child) {
+                                        return d.isEmpty? Container(
+                                          height: 24,
+                                          width: myThemes.returnWidth(context)*0.3,
+                                          decoration: BoxDecoration(
+                                            borderRadius: BorderRadius.circular(10),
+                                            color: const Color.fromARGB(255, 53, 53, 53),
+                                          ),
+                                          
+                                        ) : generalText('Distance: $d', color: myThemes.green, fontSize: 14,);
+                                      }
+                                    ),
+                                    
+                                  ],
+                                ),
+                               const Divider(
+                                      color: Colors.black,  // Set the color of the divider
+                                      height: 20,            // The divider's height, not the thickness
+                                      thickness: 2,          // The thickness of the line itself
+                                      indent: 20,            // Left side spacing
+                                      endIndent: 20,         // Right side spacing
+                                    )
+                              ],
+                            ):
                             Align(
                                 alignment: Alignment.center,
                                 child: generalText(
@@ -202,7 +281,7 @@ class _HomeState extends State<Home> {
                                   alignment: TextAlign.center,
                                 )),
                             const SizedBox(
-                              height: 10,
+                              height: 20,
                             ),
                             CustomTextField(
                               placeholder: places.destinationAddress ??
@@ -225,14 +304,15 @@ class _HomeState extends State<Home> {
                             const SizedBox(
                               height: 17,
                             ),
-                            !(places.destinationCoords.every(
-                              (element) => element == 0,
-                            ))
+                            !destinationNotGiven
                                 ? GestureDetector(
-                                    onTap: () {
+                                    onTap: () async {
                                       //implement places API
-                                      showBothLocations(places);
-                                      // getPolyPoints(places);
+                                      print("Current Location: ${places.currentLocCoords}");
+                                     
+                                      
+                                      
+
                                     },
                                     child: Container(
                                         decoration: BoxDecoration(
@@ -294,65 +374,45 @@ class _HomeState extends State<Home> {
   //   mapController?.animateCamera(CameraUpdate.newLatLngBounds(bounds, 20));
   // }
 
-  void check(CameraUpdate u, GoogleMapController c) async {
-    c.animateCamera(u);
-    mapController?.animateCamera(u);
-    LatLngBounds l1 = await c.getVisibleRegion();
-    LatLngBounds l2 = await c.getVisibleRegion();
-    print(
-        '****************************************************************************');
-    print(l1.toString());
-    print(l2.toString());
-    if (l1.southwest.latitude == -90 || l2.southwest.latitude == -90)
-      check(u, c);
-  }
+  // void check(CameraUpdate u, GoogleMapController c) async {
+  //   c.animateCamera(u);
+  //   mapController?.animateCamera(u);
+  //   LatLngBounds l1 = await c.getVisibleRegion();
+  //   LatLngBounds l2 = await c.getVisibleRegion();
+  //   print(
+  //       '****************************************************************************');
+  //   print(l1.toString());
+  //   print(l2.toString());
+  //   if (l1.southwest.latitude == -90 || l2.southwest.latitude == -90)
+  //     check(u, c);
+  // }
 
   void showBothLocations(Places places) {
-    LatLng currentLocation =
-        LatLng(places.currentLocCoords[0], places.currentLocCoords[1]);
-    LatLng destination =
-        LatLng(places.destinationCoords[0], places.destinationCoords[1]);
+  LatLng currentLocation = LatLng(places.currentLocCoords[0], places.currentLocCoords[1]);
+  LatLng destination = LatLng(places.destinationCoords[0], places.destinationCoords[1]);
 
-    // Check for antimeridian crossing
-    ;
+  LatLngBounds bounds = LatLngBounds(
+    southwest: LatLng(
+      min(currentLocation.latitude, destination.latitude),
+      min(currentLocation.longitude, destination.longitude)
+    ),
+    northeast: LatLng(
+      max(currentLocation.latitude, destination.latitude),
+      max(currentLocation.longitude, destination.longitude)
+    ),
+  );
 
-    LatLngBounds bound;
-    if (destination.latitude > currentLocation.latitude &&
-        destination.longitude > currentLocation.longitude) {
-      bound = LatLngBounds(southwest: currentLocation, northeast: destination);
-    } else if (destination.longitude > currentLocation.longitude) {
-      bound = LatLngBounds(
-          southwest: LatLng(destination.latitude, currentLocation.longitude),
-          northeast: LatLng(currentLocation.latitude, destination.longitude));
-    } else if (destination.latitude > currentLocation.latitude) {
-      bound = LatLngBounds(
-          southwest: LatLng(currentLocation.latitude, destination.longitude),
-          northeast: LatLng(destination.latitude, currentLocation.longitude));
-    } else {
-      bound = LatLngBounds(southwest: destination, northeast: currentLocation);
-    }
+  print("Current Location: $currentLocation");
+  print("Destination: $destination");
+  print("Bounds: $bounds");
 
-    // Calculate bounds
-    // var bounds = LatLngBounds(
-    //   southwest: LatLng(
-    //     min(currentLocation[0], destination[0]),
-    //     isCrossingAntimeridian ? max(currentLocation[1], destination[1]) : min(currentLocation[1], destination[1]),
-    //   ),
-    //   northeast: LatLng(
-    //     max(currentLocation[0], destination[0]),
-    //     isCrossingAntimeridian ? min(currentLocation[1], destination[1]) : max(currentLocation[1], destination[1]),
-    //   ),
-    // );
+  CameraUpdate update = CameraUpdate.newLatLngBounds(bounds, 100); // Increased padding
+  mapController?.animateCamera(update).then((void v) {
+    // check(update, mapController!); // Ensure this function checks or logs appropriately
+  });
+}
 
-    CameraUpdate u2 = CameraUpdate.newLatLngBounds(bound, 50);
-    mapController?.animateCamera(u2).then((void v) {
-      check(u2, mapController!);
-    });
 
-    mapController?.animateCamera(CameraUpdate.newLatLngBounds(bound, 50));
-
-    // Increased padding for better view
-  }
 }
 
 class LocationProvider extends ChangeNotifier {

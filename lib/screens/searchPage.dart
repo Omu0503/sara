@@ -29,6 +29,8 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
   ValueNotifier<List<Suggestion>> suggestion = ValueNotifier([]);
   Timer? bouncer;
 
+  
+
   @override
   void initState() {
     super.initState();
