@@ -96,6 +96,11 @@ On clicking 'Go', the user is directed to the navigation UI, where turn by turn 
 <p align="center" style="margin-top:40px; margin-bottom:40px;"><img src="readMeAssets/navigation_sdk_ui.JPG" alt="Home Page" width="300"/></p>
 
 
+## Demo-Video
+
+Here's the youtbe video to the demo: https://youtu.be/6Wb2_chOgQ8
+
+
   
 
 ## Installation
