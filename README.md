@@ -18,6 +18,7 @@ This project leverages various technologies to enhance the navigation experience
 - **WakeWord Detection software**: A wakeword detection model was used to "awaken" the app to start listening. The users have to call out 'hey Sara!' in order for it to start listening. Users could also call out out 'Saarah' 'Saraa', 'Saaraa' to awaken it. The model used was an open source implementation of <a href="https://github.com/dscripka/openWakeWord">this</a>.
 - **Google Cloud Services**: Various Google maps APIs were used such as roads nearby, places nearby, google maps sdk, and routes API.
 - **OpenAI APIs**: The novelty of the app lies in the fine-tuned gpt 3.5 turbo model trained on around 150 sample conversations. 150 may sound less but it was ideal for the model to generate responses with nuances but also stick to the pattern it was trained on. Other services of OpenAI implemented was their text-to-speech model.
+  
 
 ## Overview os the System Architecture
 
