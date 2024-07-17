@@ -23,7 +23,8 @@ This project leverages various technologies to enhance the navigation experience
 
 The app beigns with the homepage showing the users current location and a search button to look up for their destination.
 
-<img src="readMeAssets/maps_ui.JPG" alt="Home Page" width="300"/>
+<div style= "text-align: center;"><img src="readMeAssets/maps_ui.JPG" alt="Home Page" width="300"/></div>
+
 
 On clicking the search button, the user is directed to the search page, where the user can look up for the destination of their choice. On selecting their destination, they are rfedirected to the home page where the whole route is showd on the map along with its synopsis.
 
