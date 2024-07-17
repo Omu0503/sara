@@ -15,7 +15,7 @@ Built using Flutter!
 
 ## Overview os the System Architecture
 
-<p align="center" style="margin-top:40px; margin-bottom:40px;"><img src="readMeAssets/SYSTEM_DESIGN.JPG" alt="Home Page" width="300"/></p>
+<p align="center" style="margin-top:40px; margin-bottom:40px;"><img src="readMeAssets/SYSTEM_DESIGN.png" alt="Home Page" width="300"/></p>
 
 ### 1. App (Main Interface)
 Flutter was used as the frontend framework for the app development. The app provides an interface to basically get 3 main inputs:
