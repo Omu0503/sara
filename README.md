@@ -19,9 +19,7 @@ This project leverages various technologies to enhance the navigation experience
 - **Google Cloud Services**: Various Google maps APIs were used such as roads nearby, places nearby, google maps sdk, and routes API.
 - **OpenAI APIs**: The novelty of the app lies in the fine-tuned gpt 3.5 turbo model trained on around 150 sample conversations. 150 may sound less but it was ideal for the model to generate responses with nuances but also stick to the pattern it was trained on. Other services of OpenAI implemented was their text-to-speech model.
 
-# S.A.R.A. App System Design
-
-## Overview
+## Overview os the System Architecture
 
 ### 1. App (Main Interface)
 - **Video (Driver’s Perspective)**: The app captures real-time video from the driver’s perspective, which is essential for lane detection and other visual processing tasks.
