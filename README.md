@@ -84,12 +84,16 @@ The app beigns with the homepage showing the users current location and a search
 
 <p align="center" style="margin-top:40px; margin-bottom:40px;"><img src="readMeAssets/maps_ui.JPG" alt="Home Page" width="300"/></p>
 
+The green dot on the top-left represents that the AI is active and listening
+
 
 On clicking the search button, the user is directed to the search page, where the user can look up for the destination of their choice. On selecting their destination, they are rfedirected to the home page where the whole route is showd on the map along with its synopsis.
 
 <p align="center" style="margin-top:40px; margin-bottom:40px;"><img src="readMeAssets/search_page_ui.JPG" alt="Home Page" width="300"/></p>
 
 On clicking 'Go', the user is directed to the navigation UI, where turn by turn virsual and auditory instrcutuins are provided. Until here, the UI is pretty much the same as other popular navigation apps. The reason for such a UI was opted because users are now comfortable with such an interface, so deviating from it wouldn't make sense.
+
+<p align="center" style="margin-top:40px; margin-bottom:40px;"><img src="readMeAssets/navigation_sdk_ui.JPG" alt="Home Page" width="300"/></p>
 
 
   
