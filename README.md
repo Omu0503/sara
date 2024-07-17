@@ -3,6 +3,8 @@
 S.A.R.A. is a sophisticated navigation AI assistant whereby users can speak to the app when they face confusions while navigating their route. It's like having a partner riding alongside you, who completely knows your route and who you can speak to and ask for their guidance at any point of confusion on your route.
 This project leverages various technologies to enhance the navigation experience, including Flutter, OpenCV, Python, Google Cloud services, and OpenAI APIs.
 
+Built using Flutter!
+
 
 ## Features
 
@@ -10,19 +12,13 @@ This project leverages various technologies to enhance the navigation experience
 - **Contextual Data**: Users could ask for any nearby petrol stations or shopping malls, and the app would direct you there. And yes, you just have to speak to it and she will respond and guide you!
 - **Traffic Information**: The app also updates users with the latest traffic information, such as road closures, accidents, etc, on the route.
 
-## Technologies Used
-
-- **Flutter**: Frontend framework for building the mobile application.
-- **Lane Detection Algorithm**: The app streams the video of the road ahead. This implies that the user's phone should be placed at an angle that is able to record the road ahead clearly. Computer vision library openCV was used to implement a lane detection algorithm. An open-source algortihm was used. 
-- **Microsoft AWS**: The flask API was hoisted on a Microsoft AWS server in Singapore.
-- **WakeWord Detection software**: A wakeword detection model was used to "awaken" the app to start listening. The users have to call out 'hey Sara!' in order for it to start listening. Users could also call out out 'Saarah' 'Saraa', 'Saaraa' to awaken it. 
-- **Google Cloud Services**: Various Google maps APIs were used such as roads nearby, places nearby, google maps sdk, and routes API.
-- **OpenAI APIs**:
 
 ## Overview os the System Architecture
 
+<p align="center" style="margin-top:40px; margin-bottom:40px;"><img src="readMeAssets/SYSTEM_DESIGN.JPG" alt="Home Page" width="300"/></p>
+
 ### 1. App (Main Interface)
-The app provides an interface to basically get 3 main inputs:
+Flutter was used as the frontend framework for the app development. The app provides an interface to basically get 3 main inputs:
 - **Video (Driver’s Perspective)**: The video of the road ahead of the driver. Needed for processing it using the lane detection algorithm (explained why later on).
 - **Audio (User’s Command)**
 - **Destination**
@@ -39,6 +35,8 @@ Here it would be appropriate to differentiate between 2 terminologies in our con
 
 ### 4. Algorithm
 - **Fine-tuned LLM (Language Model)**:  The novelty of the app lies in the fine-tuned gpt 3.5 turbo model trained on around 150 sample conversations. A fine-tuned model is used os that it can generate responses in the most convenietn way possible for the user to understand whilst also containing as much info as possible. 150 may sound less but it was ideal for the model to generate responses with nuances but also stick to the pattern it was trained on. Other services of OpenAI implemented was their text-to-speech model. This fine-tuned model receives data from the different navigation apis and from the lane detection algorithm to generate the most apt response. A sample conversation would look like the follwoing:
+
+  
 
 **User:** "S.A.R.A., I'm approaching a complex junction with multiple exits. Can you guide me on which exit to take?"
 
@@ -64,7 +62,8 @@ after a while
 
 **S.A.R.A.:** "You're welcome! Drive safely and let me know if you need more assistance."
 
-  
+
+
 
 ### 5. API Calls
 - **Google Maps Routes API**: Fetches route information based on the user’s destination and current location.
@@ -72,8 +71,10 @@ after a while
 - **Other APIs**: These could include APIs for traffic information, weather updates, points of interest, etc.
 - **API Responses**: The responses from these API calls are used to provide real-time information and updates to the user.
 
+
+
 ### 6. NLP2 (Natural Language Processing 2)
-- **Text to Speech**: Converts the generated responses from the Fine-tuned LLM into speech, allowing the app to communicate with the user audibly.
+- **Text to Speech**: Converts the generated responses from the Fine-tuned LLM into speech, allowing the app to communicate with the user audibly. Uses the OpenAI's tts endpoint
 
 
   
