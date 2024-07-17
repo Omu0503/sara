@@ -13,30 +13,58 @@ This project leverages various technologies to enhance the navigation experience
 ## Technologies Used
 
 - **Flutter**: Frontend framework for building the mobile application.
-- **Lane Detection Algorithm**: The app streams the video of the road ahead. This implies that the user's phone should be placed at an angle that is able to record the road ahead clearly. Computer vision library openCV was used to implement a lane detection algorithm. An open-source algortihm was used. You can find the github of its code <a href="https://github.com/cfzd/Ultra-Fast-Lane-Detection-v2">here</a>. This algorithm was made into an API using **flask** that would emit a JSON response containing the number of lanes on the road and the the lane on which the user is currently on.
+- **Lane Detection Algorithm**: The app streams the video of the road ahead. This implies that the user's phone should be placed at an angle that is able to record the road ahead clearly. Computer vision library openCV was used to implement a lane detection algorithm. An open-source algortihm was used. 
 - **Microsoft AWS**: The flask API was hoisted on a Microsoft AWS server in Singapore.
-- **WakeWord Detection software**: A wakeword detection model was used to "awaken" the app to start listening. The users have to call out 'hey Sara!' in order for it to start listening. Users could also call out out 'Saarah' 'Saraa', 'Saaraa' to awaken it. The model used was an open source implementation of <a href="https://github.com/dscripka/openWakeWord">this</a>.
+- **WakeWord Detection software**: A wakeword detection model was used to "awaken" the app to start listening. The users have to call out 'hey Sara!' in order for it to start listening. Users could also call out out 'Saarah' 'Saraa', 'Saaraa' to awaken it. 
 - **Google Cloud Services**: Various Google maps APIs were used such as roads nearby, places nearby, google maps sdk, and routes API.
-- **OpenAI APIs**: The novelty of the app lies in the fine-tuned gpt 3.5 turbo model trained on around 150 sample conversations. 150 may sound less but it was ideal for the model to generate responses with nuances but also stick to the pattern it was trained on. Other services of OpenAI implemented was their text-to-speech model.
-  
+- **OpenAI APIs**:
 
 ## Overview os the System Architecture
 
 ### 1. App (Main Interface)
-- **Video (Driver’s Perspective)**: The app captures real-time video from the driver’s perspective, which is essential for lane detection and other visual processing tasks.
-- **Audio (User’s Command)**: The app listens for voice commands from the user, which are processed for navigation and other functions.
-- **Destination**: The app allows users to set their destination, which is a crucial input for generating routes and guidance.
+The app provides an interface to basically get 3 main inputs:
+- **Video (Driver’s Perspective)**: The video of the road ahead of the driver. Needed for processing it using the lane detection algorithm (explained why later on).
+- **Audio (User’s Command)**
+- **Destination**
 
 ### 2. Video Processing
-- **Lane Detection Algorithm**: This component processes the video feed to detect lanes on the road. It helps in providing real-time lane guidance to the user.
+The app transfers the captured video via websockkets (i.e. the video is live streamed) to the backend where the **lane detection algorithm** processes the video. The algorithm outputs the number of lanes on the road and the lane on which the driver is on. This is done to provide detailed lane guidance along the route to the user. You can find the github of its code <a href="https://github.com/cfzd/Ultra-Fast-Lane-Detection-v2">here</a>. This algorithm was made into an API using **flask** that would emit a JSON response containing the number of lanes on the road and the the lane on which the user is currently on.
+
 
 ### 3. NLP1 (Natural Language Processing 1)
-- **Wake Word Model**: This model listens for a specific wake word to activate the app’s voice command functionality.
-- **Speech to Text**: Converts the user’s spoken commands into text for further processing.
-- **Query Classification (NLP)**: Classifies the text commands into different categories such as route requests, traffic information, etc., to understand the user’s intent.
+Here it would be appropriate to differentiate between 2 terminologies in our context. When we refer to system, it means the AI-speaking assistant and when we refer to the app, we either mean the interface that the user sees or the entire app as a whole, dpending on the context.
+- **Wake Word Model**: The app shouldn't be listening to the user all the time. This would be otherwise inefficient and would lead to resource wastage. The system should only listen when the user is calling it. So to schieve this, the user must "wake" the app so that it can start listening. This is done by calling her name 'Sara'. Once the app is "awake", it starts the listening and transcribing process. The model used was an open source implementation of <a href="https://github.com/dscripka/openWakeWord">this</a>.
+- **Speech to Text**: The system is now "awake" and is ready to transcribe the user's queries. This app used the native transcription implementation built in iOS and android applications. The native models were failry accurate to say. However, future implementations would include integrating it with whisper from OpenAI.
+- **Query Classification (NLP)**: This was a custom model trained on a 1250 user query sample. The queries were inspired from a research conducted by the team and were then augmented to increase sample size. The queries were divided int 4 categories: (a) Lane guidance queries (b) Contextual-Information (c) Traffic- based query and (d) Hands free functionality request. The last category included a sub category of contextual based hands free functionality making the totla number of categories to 5. The model's accuracy was quite high mostly because of the low sample size of the training data. The model determines the intent of the user's query and then asks the app to make the necessary API calls needed to get the data the user is looking for.
 
 ### 4. Algorithm
-- **Fine-tuned LLM (Language Model)**: This model is fine-t tuned for the specific needs of the S.A.R.A. app. It processes the classified queries and generates appropriate responses or actions.
+- **Fine-tuned LLM (Language Model)**:  The novelty of the app lies in the fine-tuned gpt 3.5 turbo model trained on around 150 sample conversations. A fine-tuned model is used os that it can generate responses in the most convenietn way possible for the user to understand whilst also containing as much info as possible. 150 may sound less but it was ideal for the model to generate responses with nuances but also stick to the pattern it was trained on. Other services of OpenAI implemented was their text-to-speech model. This fine-tuned model receives data from the different navigation apis and from the lane detection algorithm to generate the most apt response. A sample conversation would look like the follwoing:
+
+**User:** "S.A.R.A., I'm approaching a complex junction with multiple exits. Can you guide me on which exit to take?"
+
+**S.A.R.A.:** "Sure! You will see three exits ahead. Please take the second exit. Right before this exit, you will pass by a large billboard for 'Smith's Cafe' on your right, and just after the exit, there is a landmark, Jaya One shopping mall, which should be visible on your left."
+
+**User:** "Got it. What should I look out for after taking the exit?"
+
+**S.A.R.A.:** "After you take the exit, continue straight for about 1.3 kilometers. You will need to turn left onto Jalan 17/1."
+
+after a while
+
+**S.A.R.A:** "Keep an eye out for the Unique Seafood PJ23 restaurant, which will be on your right just before you need to make your turn." 
+
+**User:** "Thanks, S.A.R.A. How's the traffic ahead?"
+
+**S.A.R.A.:** "The traffic is currently flowing smoothly with no significant delays on your route. You should reach your destination without any issues."
+
+**User:** "Perfect. How far is the destination from here?"
+
+**S.A.R.A.:** "You are approximately 3 kilometers away from your destination, Pacific Towers (Capella Residenz). It should take about 10 minutes considering the current traffic conditions."
+
+**User:** "Thank you for the help, S.A.R.A."
+
+**S.A.R.A.:** "You're welcome! Drive safely and let me know if you need more assistance."
+
+  
 
 ### 5. API Calls
 - **Google Maps Routes API**: Fetches route information based on the user’s destination and current location.
@@ -46,6 +74,9 @@ This project leverages various technologies to enhance the navigation experience
 
 ### 6. NLP2 (Natural Language Processing 2)
 - **Text to Speech**: Converts the generated responses from the Fine-tuned LLM into speech, allowing the app to communicate with the user audibly.
+
+
+  
 ## User-flow
 
 The app beigns with the homepage showing the users current location and a search button to look up for their destination.
