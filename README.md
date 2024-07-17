@@ -3,6 +3,7 @@
 S.A.R.A. is a sophisticated navigation AI assistant whereby users can speak to the app when the face confusions while navigating their route. It's like having a partner riding alongside you, who completely knows your route and who you can speak to and ask for their guidance at any point of confusion on your route.
 This project leverages various technologies to enhance the navigation experience, including Flutter, OpenCV, Python, Google Cloud services, and OpenAI APIs.
 
+
 ## Features
 
 - **Lane Guidance**: Onw of the major problems users reported in our survey was that not sufficient information was given when approaching an exit/turn/diversion. For this reason, a comprehensive lane guidance system was developed whereby users would receive verbal instructions that contained contextual information (for eg. Do you see the bridge ahead? take the right just after) and by indicating the lanes (for eg. Stay on the second most right lane for the upcoming diversion).
@@ -21,6 +22,8 @@ This project leverages various technologies to enhance the navigation experience
 ## User-flow
 
 The app beigns with the homepage showing the users current location and a search button to look up for their destination.
+
+<img src="readMeAssets/map_ui.jpg" alt="Home Page" width="300"/>
 
 On clicking the search button, the user is directed to the search page, where the user can look up for the destination of their choice. On selecting their destination, they are rfedirected to the home page where the whole route is showd on the map along with its synopsis.
 
