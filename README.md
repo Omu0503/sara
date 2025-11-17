@@ -1,5 +1,7 @@
 # S.A.R.A. - Smart Automated Routing Assistant
 
+Access to published paper <a href="https://doi.org/10.22452/nece.vol1no1.5">here</a>
+
 S.A.R.A. is a sophisticated navigation AI assistant whereby users can speak to the app when they face confusions while navigating their route. It's like having a partner riding alongside you, who completely knows your route and who you can speak to and ask for their guidance at any point of confusion on your route.
 This project leverages various technologies to enhance the navigation experience, including Flutter, OpenCV, Python, Google Cloud services, and OpenAI APIs.
 
